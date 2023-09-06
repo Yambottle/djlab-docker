@@ -1,33 +1,24 @@
 from IPython.core.magic import line_magic, Magics, magics_class
-from yq import cli
-import io
-from contextlib import redirect_stdout
-from os import getenv
+import yaml
+import os
+from functools import reduce
 
 
 def get_djlab_config(key):
-    f = io.StringIO()
-    with redirect_stdout(f):
-        try:
-            cli(args=['-Y', '.{}'.format(key), getenv('DJLAB_CONFIG')])
-        except SystemExit:
-            pass
-    if f.getvalue().find(': ') > -1:
-        return f.getvalue()
-    else:
-        return f.getvalue().replace('\n', '').replace('\'', '').replace('...', '')
+    with open(os.getenv("DJLAB_CONFIG"), "r") as f:
+        config = yaml.safe_load(f)
+        return reduce(dict.__getitem__, key.split("."), config)
 
 
 def set_djlab_config(key, value):
-    config_file = getenv('DJLAB_CONFIG')
-    f = io.StringIO()
-    with redirect_stdout(f):
-        try:
-            cli(args=['-Y', f'. | .{key} = \"{value}\"', config_file])
-        except SystemExit:
-            pass
-    with open(config_file, 'w') as out:
-        out.write(f.getvalue())
+    try:
+        os.system(
+            "yq eval -i '. | .{key} = {value}' {config_path}".format(
+                key=key, value=value, config_path=os.getenv("DJLAB_CONFIG")
+            )
+        )
+    except SystemExit:
+        pass
 
 
 @magics_class
@@ -36,7 +27,7 @@ class DjlabConfig(Magics):
     def djlab(self, line):
         args = line.split()
         if len(args) == 0:
-            print(get_djlab_config(''))
+            print(get_djlab_config(""))
         elif len(args) == 1:
             print(get_djlab_config(args[0]))
         elif len(args) == 2:

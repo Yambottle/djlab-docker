@@ -12,14 +12,16 @@ c = Config() if "c" not in locals() else c
 
 def passwd(passphrase: str):
     salt_len = 12
-    h = hashlib.new("sha1")
+    h = hashlib.new("sha256")
     salt = ("%0" + str(salt_len) + "x") % random.getrandbits(4 * salt_len)
     h.update(passphrase.encode("utf-8") + salt.encode("ascii"))
-    return ":".join(("sha1", salt, h.hexdigest()))
+    return ":".join(("sha256", salt, h.hexdigest()))
 
 
 # The password to use i.e. "datajoint".
-c.ServerApp.password = passwd(get_djlab_config("djlab.jupyter_server.password"))
+c.PasswordIdentityProvider.hashed_password = passwd(
+    get_djlab_config("djlab.jupyter_server.password")
+)
 
 # Allow root access.
 c.ServerApp.allow_root = False
