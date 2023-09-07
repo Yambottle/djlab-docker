@@ -1,2 +1,3 @@
 pyyaml
 jupyterlab
+jupyter-collaboration

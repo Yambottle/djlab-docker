@@ -41,6 +41,10 @@ COPY --chown=anaconda:anaconda ./config/ipython_config.py /etc/ipython/
 COPY ./utilities/add_entrypoint.sh /tmp/add_entrypoint.sh
 USER root:anaconda
 RUN \
+	# Install yq
+	wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && \
+  chmod +x /usr/bin/yq && \
+	# Add add_entrypoint.sh to /entrypoint.sh
 	(cat /entrypoint.sh | \
 		tr '\n' '\r' | \
 		sed "s~# Run command\r\"\$@\"~~g" | \
@@ -50,6 +54,9 @@ RUN \
 	chmod +x /entrypoint.sh && \
 	rm /tmp/add_entrypoint.sh
 USER anaconda:anaconda
+# Add landing page
+ENV HOME /home/anaconda
+COPY --chown=anaconda:anaconda ./config/README.md /home/anaconda/
 
 
 # Squashed Final Image
