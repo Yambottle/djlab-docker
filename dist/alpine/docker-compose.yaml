@@ -1,21 +1,24 @@
 version: '3.7'
 services:
   app:
-    build:  # Uncomment to enable local build
+    build:
+      # Uncomment to enable local build
       context: ../..
       dockerfile: ./dist/alpine/Dockerfile
       args:
         - BASE_IMAGE_HASH
         - PY_VER
     image: datajoint/djlab:py${PY_VER}-alpine
+    container_name: djlab-py${PY_VER}-alpine
+    command: jupyter lab --YDocExtension.document_save_delay=0.5
     ports:
       - 8888:8888
     environment:
-      - DISPLAY  # Necessary to allow GUI to route to Docker host
+      - DISPLAY # Necessary to allow GUI to route to Docker host
       # - Djlab_JupyterServer_Password=datajoint  # Jupyter login password
-      # - Djlab_JupyterServer_DisplayFilepath=/home/anaconda/README.md  # Display on login
+      - Djlab_JupyterServer_DisplayFilepath=/home/anaconda/README.md # Display on login
       # - Djlab_JupyterServer_SaveOutput=FALSE  # Set if notebook save includes output
-    user: ${HOST_UID}:anaconda  # Necessary to allow GUI to route to Docker host
+    user: ${HOST_UID}:anaconda # Necessary to allow GUI to route to Docker host
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw  # Necessary to allow GUI to route to Docker host
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw # Necessary to allow GUI to route to Docker host
       # - /path/to/README.md:/home/anaconda/README.md  # Display on login

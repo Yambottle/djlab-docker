@@ -9,7 +9,8 @@ services:
         - BASE_IMAGE_HASH
         - PY_VER
     image: datajoint/djlab:py${PY_VER}-debian
-    container_name: djlab
+    container_name: djlab-py${PY_VER}-debian
+    command: jupyter lab --YDocExtension.document_save_delay=0.5
     ports:
       - 8888:8888
     environment:
