@@ -1,0 +1,3 @@
+jupyterlab_widgets
+ipywidgets
+nodejs>=18

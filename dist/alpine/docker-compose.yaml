@@ -10,7 +10,6 @@ services:
         - PY_VER
     image: datajoint/djlab:py${PY_VER}-alpine
     container_name: djlab-py${PY_VER}-alpine
-    command: jupyter lab --YDocExtension.document_save_delay=0.5
     ports:
       - 8888:8888
     environment:

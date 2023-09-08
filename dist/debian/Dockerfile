@@ -2,26 +2,38 @@ ARG BASE_IMAGE_HASH
 ARG PY_VER
 FROM datajoint/djbase:py${PY_VER}-debian-${BASE_IMAGE_HASH} as jup_build
 
-LABEL maintainerName="Raphael Guzman" \
-	maintainerEmail="raphael@datajoint.com" \
+LABEL maintainerName="Drew Yang" \
+	maintainerEmail="drew@datajoint.com" \
 	maintainerCompany="DataJoint"
-ENV DJLAB_CONFIG /tmp/djlab_config.yaml
-COPY --chown=anaconda:anaconda ./dist/debian/apt_requirements.txt \
-	./config/pip_requirements.txt ./config/djlab_config.yaml /tmp/
-COPY --chown=anaconda:anaconda ./utilities/djlab.py ./utilities/setup.py /main/
+## Copy os, conda, and pip requirements
+COPY --chown=anaconda:anaconda \
+	./dist/debian/apt_requirements.txt \
+	./config/pip_requirements.txt \
+	./config/conda_requirements.txt \
+	/tmp/
+## Install os, conda, and pip dependencies by /entrypoint.sh
+## For more details check: https://github.com/datajoint/miniconda3-docker/tree/master/utilities
+## shell_intercept.sh and start_up.go
 RUN \
 	umask u+rwx,g+rwx,o-rwx && \
-	chmod u=rw,g=rw,o=r /tmp/djlab_config.yaml && \
-	# Install jupyter
 	/entrypoint.sh echo "Requirements updated..." && \
 	rm $APT_REQUIREMENTS && \
 	rm $PIP_REQUIREMENTS && \
-	# Install djlab magic
-	pip install --no-cache-dir /main && \
-	# Install jupyter widgets
-	conda install -y -n base -c conda-forge jupyterlab_widgets ipywidgets "nodejs>=18" && \
-	# Add markdown preview as default
-	DOC_MANGER_CONFIG=$(jq -r \
+	rm $CONDA_REQUIREMENTS && \
+	# Clean up installation cache
+	find /opt/conda/conda-meta -user anaconda -exec chmod u+rwx,g+rwx,o-rwx "{}" \; && \
+	conda clean -ya
+
+ENV HOME /home/anaconda
+## Copy jupyter config files that already customized to take configs from env
+COPY --chown=anaconda:anaconda \
+	./config/jupyter_server_config.py \
+	./config/jupyter_lab_config.py \
+	$HOME/.jupyter/
+COPY --chown=anaconda:anaconda ./config/ipython_config.py $HOME/.ipython/
+## Unconfigurable jupyterlab:DocManagerExtension
+## Set markdown preview as default
+RUN	DOC_MANGER_CONFIG=$(jq -r \
 		'.properties.defaultViewers.default = {"markdown":"Markdown Preview"}' \
 		$(echo "/opt/conda/share/jupyter/lab/schemas/@jupyterlab/docmanager-extension\
 			/plugin.json" | tr -d '\n' | tr -d '\t')) && \
@@ -30,34 +42,16 @@ RUN \
 			/plugin.json" | tr -d '\n' | tr -d '\t') && \
 	chmod u+rwx,g+rwx,o-rwx \
 		$(echo "/opt/conda/share/jupyter/lab/schemas/@jupyterlab/docmanager-extension\
-			/plugin.json" | tr -d '\n' | tr -d '\t') && \
-	# Clean up
-	find /opt/conda/conda-meta -user anaconda -exec chmod u+rwx,g+rwx,o-rwx "{}" \; && \
-	rm -r /main/* && \
-	conda clean -ya
-COPY --chown=anaconda:anaconda ./config/jupyter_server_config.py /etc/jupyter/
-COPY --chown=anaconda:anaconda ./config/ipython_config.py /etc/ipython/
-# Add add_entrypoint.sh to /entrypoint.sh
-COPY ./utilities/add_entrypoint.sh /tmp/add_entrypoint.sh
-USER root:anaconda
-RUN \
-	# Install yq
-	wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq && \
-  chmod +x /usr/bin/yq && \
-	# Add add_entrypoint.sh to /entrypoint.sh
-	(cat /entrypoint.sh | \
-		tr '\n' '\r' | \
-		sed "s~# Run command\r\"\$@\"~~g" | \
-		tr '\r' '\n' && \
-		cat /tmp/add_entrypoint.sh) > /tmp/entrypoint.sh && \
-	mv /tmp/entrypoint.sh /entrypoint.sh && \
-	chmod +x /entrypoint.sh && \
-	rm /tmp/add_entrypoint.sh
-USER anaconda:anaconda
-# Add landing page
-ENV HOME /home/anaconda
-COPY --chown=anaconda:anaconda ./config/README.md /home/anaconda/
+			/plugin.json" | tr -d '\n' | tr -d '\t')
+## Add repo README as a landing page
+## Will be specified in env: JUPYTER_LAB_DEFAULT_URL=/home/anacoda/README.md
+COPY --chown=anaconda:anaconda ./config/README.md $HOME
 
+## Change ownership for later customized env: HOST_ID mostly for mounting local files to debug
+## Docker COPY will set uid:gid to anaconda(3000):anaconda since default uid set to 3000 in datajoint/miniconda3-docker
+RUN \
+	chmod -R 775 $HOME/.jupyter && \
+	chmod -R 775 $HOME/.ipython 
 
 # Squashed Final Image
 FROM scratch
@@ -73,7 +67,6 @@ ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV APT_REQUIREMENTS /tmp/apt_requirements.txt
 ENV PIP_REQUIREMENTS /tmp/pip_requirements.txt
 ENV CONDA_REQUIREMENTS /tmp/conda_requirements.txt
-ENV DJLAB_CONFIG /tmp/djlab_config.yaml
 ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /home/anaconda
 VOLUME /tmp/.X11-unix
