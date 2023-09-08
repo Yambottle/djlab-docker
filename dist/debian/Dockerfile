@@ -2,8 +2,8 @@ ARG BASE_IMAGE_HASH
 ARG PY_VER
 FROM datajoint/djbase:py${PY_VER}-debian-${BASE_IMAGE_HASH} as jup_build
 
-LABEL maintainerName="Drew Yang" \
-	maintainerEmail="drew@datajoint.com" \
+LABEL maintainerName="Datajoint DevOps" \
+	maintainerEmail="devops@datajoint.com" \
 	maintainerCompany="DataJoint"
 ## Copy os, conda, and pip requirements
 COPY --chown=anaconda:anaconda \
