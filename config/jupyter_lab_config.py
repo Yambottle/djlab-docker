@@ -460,9 +460,7 @@ user = [u for u in pwd.getpwall() if u.pw_uid == os.getuid()][0]
 #
 #          This flag is now deprecated and will be removed in JupyterLab v5.
 #  Default: False
-c.LabApp.collaborative = (
-    os.getenv("JUPYTER_LAB_COLLABORATIVE", "FALSE").upper() == "TRUE"
-)
+# c.LabApp.collaborative = False
 
 ## Full path of a config file.
 #  See also: JupyterApp.config_file
@@ -491,7 +489,7 @@ jupyter_lab_default_url = os.getenv("JUPYTER_LAB_DEFAULT_URL")
 c.LabApp.default_url = (
     "/lab/tree{}".format(
         jupyter_lab_default_url.replace(
-            os.getenv("FILE_CONTENTS_MANAGER_ROOT_DIR", user.pw_dir), ""
+            os.getenv("FILE_CONTENTS_MANAGER_ROOT_DIR", "/home"), ""
         )
     )
     if jupyter_lab_default_url

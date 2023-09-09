@@ -8,6 +8,7 @@ import json
 
 # c = get_config()  # noqa
 from traitlets.config import Config
+
 c = Config() if "c" not in locals() else c
 
 # get the current user
@@ -467,8 +468,9 @@ def passwd(passphrase: str):
     return ":".join(("sha256", salt, h.hexdigest()))
 
 
-c.PasswordIdentityProvider.hashed_password = passwd(
-    os.getenv("JUPYTER_SERVER_PASSWORD", "datajoint")
+jupyter_server_password = os.getenv("JUPYTER_SERVER_PASSWORD", "")
+c.PasswordIdentityProvider.hashed_password = (
+    passwd(jupyter_server_password) if jupyter_server_password else ""
 )
 
 ## DEPRECATED in 2.0. Use PasswordIdentityProvider.password_required
@@ -1267,9 +1269,7 @@ c.FileContentsManager.pre_save_hook = scrub_output_pre_save
 # c.FileContentsManager.preferred_dir = ''
 
 #  Default: ''
-c.FileContentsManager.root_dir = os.getenv(
-    "FILE_CONTENTS_MANAGER_ROOT_DIR", user.pw_dir
-)
+c.FileContentsManager.root_dir = os.getenv("FILE_CONTENTS_MANAGER_ROOT_DIR", "/home")
 
 ## The base name used when creating untitled directories.
 #  See also: ContentsManager.untitled_directory
