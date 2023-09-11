@@ -468,7 +468,7 @@ def passwd(passphrase: str):
     return ":".join(("sha256", salt, h.hexdigest()))
 
 
-jupyter_server_password = os.getenv("JUPYTER_SERVER_PASSWORD", "")
+jupyter_server_password = os.getenv("JUPYTER_SERVER_PASSWORD", "datajoint")
 c.PasswordIdentityProvider.hashed_password = (
     passwd(jupyter_server_password) if jupyter_server_password else ""
 )

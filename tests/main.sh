@@ -29,7 +29,7 @@ validate () {
 		echo done
 	END
 	) == 'done' ]" $LINENO
-	SHELL_CMD_FLAGS="-e Djlab_JupyterServer_DisplayFilepath=/home/anaconda/README.md"
+	SHELL_CMD_FLAGS="-e JUPYTER_LAB_DEFAULT_URL=/home/anaconda/README.md"
 	SHELL_CMD=$(eval "echo \"$SHELL_CMD_TEMPLATE\"")
 	assert "check landing page" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
 		jupyter lab > /tmp/logs 2>&1 & \
@@ -39,20 +39,36 @@ validate () {
 		echo done
 	END
 	) == 'done' ]" $LINENO
-	assert "get djlab default password with magic" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
-		ipython -c "%djlab djlab.jupyter_server.password"
+	assert "check default password" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
+		jupyter lab > /tmp/logs 2>&1 & \
+		sleep 5 && \
+		python <<EOF
+		import requests
+		s = requests.Session()
+		url = 'http://127.0.0.1:8888/login?next=%2Flab'
+		resp = s.get(url)
+		xsrf_cookie = resp.cookies["_xsrf"]
+
+		params = {'_xsrf': xsrf_cookie, 'password': 'datajoint'}
+		resp = s.post(url, data=params)
+		print(resp.status_code)
+		EOF
 	END
-	) == 'datajoint' ]" $LINENO
-	SHELL_CMD_FLAGS="-e Djlab_JupyterServer_Password=test"
+	) == 200 ]" $LINENO
+	SHELL_CMD_FLAGS="-e JUPYTER_SERVER_PASSWORD=test"
 	SHELL_CMD=$(eval "echo \"$SHELL_CMD_TEMPLATE\"")
-	assert "get djlab changed password with magic" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
-		ipython -c "%djlab djlab.jupyter_server.password"
+	assert "check setting password by env var" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
+		ipython -c "import os; print(os.getenv('JUPYTER_SERVER_PASSWORD'))"
 	END
 	) == 'test' ]" $LINENO
-	assert "check djlab_config permissions" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
-		ls -la /tmp/djlab_config.yaml | cut -d ' ' -f1 | tr -d '\n'
+	assert "check jupyter_server_config.py permissions" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
+		ls -la /home/anaconda/.jupyter/jupyter_server_config.py | cut -d ' ' -f1 | tr -d '\n'
 	END
-	) == '-rw-rw-r--' ]" $LINENO
+	) == '-rwxrwxr-x' ]" $LINENO
+	assert "check jupyter_lab_config.py permissions" "[ $($SHELL_CMD 'eval "$(cat)"' <<-END
+		ls -la /home/anaconda/.jupyter/jupyter_lab_config.py | cut -d ' ' -f1 | tr -d '\n'
+	END
+	) == '-rwxrwxr-x' ]" $LINENO
 }
 # set image context
 REF=$(eval \
@@ -78,6 +94,6 @@ echo -e \
 	Size limit: $(numfmt --to iec --format "%8.4f" $SIZE_LIMIT)
 assert "minimal footprint" "(( $(echo "$SIZE <= $SIZE_LIMIT" | bc -l) ))" $LINENO
 rm /tmp/$TAG.tar.gz
-# run tests
+run tests
 SHELL_CMD=$(eval "echo \"$SHELL_CMD_TEMPLATE\"")
 validate
