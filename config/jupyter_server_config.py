@@ -350,7 +350,7 @@ c.ServerApp.allow_root = False
 
 ## The IP address the Jupyter server will listen on.
 #  Default: 'localhost'
-c.ServerApp.ip = os.getenv("SERVER_APP_IP", "0.0.0.0")
+c.ServerApp.ip = os.getenv("JUPYTER_SERVER_APP_IP", "0.0.0.0")
 
 ## Supply extra arguments that will be passed to Jinja environment.
 #  Default: {}
@@ -468,7 +468,7 @@ def passwd(passphrase: str):
     return ":".join(("sha256", salt, h.hexdigest()))
 
 
-jupyter_server_password = os.getenv("SERVER_APP_PASSWORD", "datajoint")
+jupyter_server_password = os.getenv("JUPYTER_SERVER_APP_PASSWORD", "datajoint")
 c.PasswordIdentityProvider.hashed_password = (
     passwd(jupyter_server_password) if jupyter_server_password else ""
 )
@@ -479,7 +479,7 @@ c.PasswordIdentityProvider.hashed_password = (
 
 ## The port the server will listen on (env: JUPYTER_PORT).
 #  Default: 0
-c.ServerApp.port = os.getenv("JUPYTER_PORT", 8888)
+c.ServerApp.port = os.getenv("JUPYTER_SERVER_APP_PORT", 8888)
 
 ## The number of additional ports to try if the specified port is not available
 #  (env: JUPYTER_PORT_RETRIES).
@@ -509,7 +509,7 @@ c.ServerApp.port = os.getenv("JUPYTER_PORT", 8888)
 
 ## The directory to use for notebooks and kernels.
 #  Default: ''
-c.ServerApp.root_dir = os.getenv("SERVER_APP_ROOT_DIR", user.pw_dir)
+c.ServerApp.root_dir = os.getenv("JUPYTER_SERVER_APP_ROOT_DIR", user.pw_dir)
 
 ## The session manager class to use.
 #  Default: 'builtins.object'
@@ -555,7 +555,7 @@ c.ServerApp.root_dir = os.getenv("SERVER_APP_ROOT_DIR", user.pw_dir)
 #  Default: {}
 c.ServerApp.terminado_settings = json.loads(
     os.getenv(
-        "SERVER_APP_TERMINADO_SETTINGS", f'{{"shell_command": ["{user.pw_shell}"]}}'
+        "JUPYTER_SERVER_APP_TERMINADO_SETTINGS", f'{{"shell_command": ["{user.pw_shell}"]}}'
     )
 )
 
@@ -1243,7 +1243,7 @@ c.ServerApp.terminado_settings = json.loads(
 # c.FileContentsManager.pre_save_hook = None
 def scrub_output_pre_save(model, **kwargs):
     """scrub output before saving notebooks"""
-    if not os.getenv("FILE_CONTENTS_MANAGER_SAVE_OUTPUT", "FALSE") == "TRUE":
+    if not os.getenv("JUPYTER_FILE_CONTENTS_MANAGER_SAVE_OUTPUT", "FALSE") == "TRUE":
         # only run on notebooks
         if model["type"] != "notebook":
             return
@@ -1269,7 +1269,7 @@ c.FileContentsManager.pre_save_hook = scrub_output_pre_save
 # c.FileContentsManager.preferred_dir = ''
 
 #  Default: ''
-c.FileContentsManager.root_dir = os.getenv("FILE_CONTENTS_MANAGER_ROOT_DIR", "/home")
+c.FileContentsManager.root_dir = os.getenv("JUPYTER_FILE_CONTENTS_MANAGER_ROOT_DIR", "/home")
 
 ## The base name used when creating untitled directories.
 #  See also: ContentsManager.untitled_directory
@@ -1818,5 +1818,5 @@ c.FileContentsManager.root_dir = os.getenv("FILE_CONTENTS_MANAGER_ROOT_DIR", "/h
 # c.ZMQChannelsWebsocketConnection.session = None
 
 c.YDocExtension.disable_rtc = (
-    os.getenv("YDOCEXTENSION_DISABLE_RTC", "FALSE").upper() == "TRUE"
+    os.getenv("JUPYTER_YDOCEXTENSION_DISABLE_RTC", "FALSE").upper() == "TRUE"
 )
