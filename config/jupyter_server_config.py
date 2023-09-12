@@ -1816,3 +1816,7 @@ c.FileContentsManager.root_dir = os.getenv("FILE_CONTENTS_MANAGER_ROOT_DIR", "/h
 
 #  See also: BaseKernelWebsocketConnection.session
 # c.ZMQChannelsWebsocketConnection.session = None
+
+c.YDocExtension.disable_rtc = (
+    os.getenv("JUPYTER_YDOCEXTENSION_DISABLE_RTC", "FALSE").upper() == "TRUE"
+)

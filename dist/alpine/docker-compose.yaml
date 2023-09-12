@@ -17,7 +17,7 @@ services:
       - JUPYTER_SERVER_PASSWORD=datajoint # Jupyter login password
       - JUPYTER_LAB_DEFAULT_URL=/home/anaconda/README.md # Landing page display on login
       - FILE_CONTENTS_MANAGER_SAVE_OUTPUT=FALSE # Set if notebook save includes output
-    command: jupyter lab --YDocExtension.disable_rtc=False
+      - JUPYTER_YDOCEXTENSION_DISABLE_RTC=FALSE # Set if you want to enable RTC
     user: ${HOST_UID}:anaconda # Necessary to allow GUI to route to Docker host
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw # Necessary to allow GUI to route to Docker host
