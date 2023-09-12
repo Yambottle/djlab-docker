@@ -485,7 +485,7 @@ user = [u for u in pwd.getpwall() if u.pw_uid == os.getuid()][0]
 
 ## The default URL to redirect to from `/`
 #  Default: '/lab'
-jupyter_lab_default_url = os.getenv("JUPYTER_LAB_DEFAULT_URL")
+jupyter_lab_default_url = os.getenv("LAB_APP_DEFAULT_URL")
 c.LabApp.default_url = (
     "/lab/tree{}".format(
         jupyter_lab_default_url.replace(

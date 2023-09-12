@@ -350,7 +350,7 @@ c.ServerApp.allow_root = False
 
 ## The IP address the Jupyter server will listen on.
 #  Default: 'localhost'
-c.ServerApp.ip = os.getenv("JUPYTER_SERVER_IP", "0.0.0.0")
+c.ServerApp.ip = os.getenv("SERVER_APP_IP", "0.0.0.0")
 
 ## Supply extra arguments that will be passed to Jinja environment.
 #  Default: {}
@@ -468,7 +468,7 @@ def passwd(passphrase: str):
     return ":".join(("sha256", salt, h.hexdigest()))
 
 
-jupyter_server_password = os.getenv("JUPYTER_SERVER_PASSWORD", "datajoint")
+jupyter_server_password = os.getenv("SERVER_APP_PASSWORD", "datajoint")
 c.PasswordIdentityProvider.hashed_password = (
     passwd(jupyter_server_password) if jupyter_server_password else ""
 )
@@ -509,7 +509,7 @@ c.ServerApp.port = os.getenv("JUPYTER_PORT", 8888)
 
 ## The directory to use for notebooks and kernels.
 #  Default: ''
-c.ServerApp.root_dir = os.getenv("JUPYTER_SERVER_ROOT_DIR", user.pw_dir)
+c.ServerApp.root_dir = os.getenv("SERVER_APP_ROOT_DIR", user.pw_dir)
 
 ## The session manager class to use.
 #  Default: 'builtins.object'
@@ -555,7 +555,7 @@ c.ServerApp.root_dir = os.getenv("JUPYTER_SERVER_ROOT_DIR", user.pw_dir)
 #  Default: {}
 c.ServerApp.terminado_settings = json.loads(
     os.getenv(
-        "JUPYTER_SERVER_TERMINADO_SETTINGS", f'{{"shell_command": ["{user.pw_shell}"]}}'
+        "SERVER_APP_TERMINADO_SETTINGS", f'{{"shell_command": ["{user.pw_shell}"]}}'
     )
 )
 
@@ -1818,5 +1818,5 @@ c.FileContentsManager.root_dir = os.getenv("FILE_CONTENTS_MANAGER_ROOT_DIR", "/h
 # c.ZMQChannelsWebsocketConnection.session = None
 
 c.YDocExtension.disable_rtc = (
-    os.getenv("JUPYTER_YDOCEXTENSION_DISABLE_RTC", "FALSE").upper() == "TRUE"
+    os.getenv("YDOCEXTENSION_DISABLE_RTC", "FALSE").upper() == "TRUE"
 )
